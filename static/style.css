@@ -1,0 +1,133 @@
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #333;
+    color: #DDD;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    color: #0F4A20;
+}
+
+a {
+    color: #0F4A20;
+    text-decoration: none;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    color: #0F4A20;
+}
+
+li {
+    margin-bottom: 10px;
+    font-size: 18px;
+}
+
+#loadingScreen {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.7);
+    color: #0F4A20;
+    text-align: center;
+    padding-top: 20%;
+    font-size: 24px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #DDD;
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #444;
+}
+
+.tracks-list {
+    margin: 20px 0;
+}
+
+.track-item {
+    background-color: #282828;
+    padding: 10px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    color: #aaa; /* Light gray for text */
+    position: relative;
+}
+
+.track-number {
+    width: 30px;
+    color: #aaa; /* Light gray for track numbers */
+}
+
+.album-art {
+    width: 60px;
+    height: 60px;
+    margin-right: 10px;
+}
+
+.song-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.song-title {
+    color: #228b22; /* Spotify green for song titles */
+    font-size: 16px;
+    margin-bottom: 4px;
+}
+
+.artist-name {
+    font-size: 14px;
+    color: #aaa; /* Light gray for artist names */
+}
+
+.feature-toggle {
+    position: absolute; /* Absolute position within track-item */
+    right: 20px; /* Or however much spacing you want */
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    background: #1DB954; /* Spotify green background for the toggle button */
+    color: white;
+    padding: 5px 10px;
+    border-radius: 20px; /* Rounded corners for aesthetics */
+    text-align: center;
+}
+
+.features-details {
+    display: none;
+    position: absolute;
+    background: #202020;
+    color: white;
+    padding: 10px;
+    border: 1px solid #1DB954;
+    z-index: 2;
+    right: 0; /* Align with the toggle button */
+    top: 0; /* Align with the top of the feature-toggle */
+    transform: translateY(25%); /* Position below the feature-toggle */
+    width: auto; /* Adjust as necessary */
+    /* ... other styles ... */
+}
+
+.features-details.active {
+    display: block;
+}
+
+.hidden {
+    display: none;
+}

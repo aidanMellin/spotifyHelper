@@ -1,0 +1,15 @@
+{
+    "danceability": 0.538,
+    "energy": 0.826,
+    "key": 2,
+    "loudness": -2.945,
+    "mode": 1,
+    "speechiness": 0.255,
+    "acousticness": 0.0331,
+    "instrumentalness": 0,
+    "liveness": 0.0637,
+    "valence": 0.62,
+    "tempo": 170.066,
+    "time_signature": 4,
+    "popularity": 73
+}

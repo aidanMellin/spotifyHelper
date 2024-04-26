@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playlist Tracks</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+
+<body>
+    <div id="loadingScreen">
+        <h2>Loading...</h2>
+    </div>
+
+    <div id="tracksContent" style="display: none;">
+        <h1>Playlist Tracks</h1>
+        <div class="tracks-list">
+            {% for track in tracks %}
+            <div class="track-item">
+                <span class="track-number">{{ loop.index }}</span>
+                <img class="album-art" src="{{ track['album']['images'][0]['url'] }}" alt="Album cover">
+                <div class="song-info">
+                    <span class="song-title">{{ track['name'] }}</span>
+                    <span class="artist-name">{{ track['artists']|map(attribute='name')|join(', ') }}</span>
+                </div>
+                <div class="feature-toggle" onclick="toggleFeatures('{{ track['id'] }}')">
+                    <span class="features-toggle-text">Features &#9660;</span>
+                </div>
+                <div class="features-details hidden" id="details-{{ track['id'] }}">
+                    <span title="0 to 1 if the track is 'acoustic'">Acousticness: {{ track['features']['acousticness']
+                        }}<br></span>
+                    <span title="0 to 1 how 'danceable' the song is">Danceability: {{ track['features']['danceability']
+                        }}<br></span>
+                    <span title="0 to 1 'energy' of the song">Energy: {{ track['features']['energy'] }}<br></span>
+                    <span title="key and mode of song">Key: {{ track['features']['key_mode'] }}<br></span>
+                    <span title="how instrumental is the song">Instrumentalness: {{
+                        track['features']['instrumentalness'] }}<br></span>
+                    <span title="is there an audience?">Liveness: {{ track['features']['liveness'] }}<br></span>
+                    <span title="loudness of track in decibels">Loudness: {{ track['features']['loudness'] }}<br></span>
+                    <span title="whats the mood? Positive is positive, negative is negative">Mood: {{
+                        track['features']['valence'] }}<br></span>
+                    <span title="is it 'popular'">Popularity: {{ track['features']['popularity'] }}<br></span>
+                    <span title="who's yappin">Speechiness: {{ track['features']['speechiness'] }}<br></span>
+                    <span title="how fast">Tempo: {{ track['features']['tempo'] }}<br></span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <a href="/playlists">Back to Playlists</a>
+    </div>
+
+    <script>
+        window.onload = function () {
+            document.getElementById('loadingScreen').style.display = 'none';
+            document.getElementById('tracksContent').style.display = 'block';
+        };
+
+        function toggleFeatures(trackId) {
+            var detailsDiv = document.getElementById('details-' + trackId);
+
+            // If this feature details is already active, just hide it and return
+            if (detailsDiv.classList.contains('active')) {
+                detailsDiv.classList.remove('active');
+                detailsDiv.classList.add('hidden');
+                return;
+            }
+
+            // Hide all other feature details and remove 'active' class
+            document.querySelectorAll('.features-details').forEach(function (detail) {
+                detail.classList.remove('active');
+                detail.classList.add('hidden');
+            });
+
+            // Show the details for the clicked track
+            detailsDiv.classList.add('active');
+            detailsDiv.classList.remove('hidden');
+        }
+
+        // Show information about the audio feature
+        function showFeatureInfo(featureName) {
+            var infoText = 'Info about ' + featureName;
+            // You can implement     a modal or tooltip here
+            alert(infoText);
+        }
+    </script>
+</body>
+
+</html>
