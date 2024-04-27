@@ -94,39 +94,42 @@ def playlist_tracks(playlist_id):
     sp = get_authenticated_spotify()
     results = sp.playlist_tracks(playlist_id)
     unfiltered = [item['track'] for item in results['items'] if item['track'] is not None]
-    tracks = []
 
-
-    # import pdb; pdb.set_trace()
+    # Collect all tracks using pagination
     while results['next']:  # Handle pagination
         results = sp.next(results)
-        unfiltered = [item['track'] for item in results['items'] if item['track'] is not None]
+        unfiltered.extend([item['track'] for item in results['items'] if item['track'] is not None])
 
-    for track in unfiltered:
-        # Get the audio features for the track
-        features = sp.audio_features(track["id"])[0] 
-        key_mode = get_key_and_mode(features['key'], features['mode'])
+    track_ids = [track["id"] for track in unfiltered]
+    tracks = []
 
-        # Remove unwanted keys
-        keys_to_remove = ["type", "analysis_url", "duration_ms", "id", "track_href", "uri", "key", "mode", "time_signature"]
-        for key in keys_to_remove:
-            features.pop(key, None)  # Use None as the default to avoid KeyError if the key is not present
+    # Fetch audio features in chunks of 100
+    for i in range(0, len(track_ids), 100):
+        track_features_list = sp.audio_features(track_ids[i:i+100])
+        
+        for track, features in zip(unfiltered[i:i+100], track_features_list):
+            if features:
+                # Get key_mode from features
+                key_mode = get_key_and_mode(features['key'], features['mode'])
 
-        # Add the popularity to the features
-        features['popularity'] = track["popularity"]
-        features['key_mode'] = key_mode
+                # Remove unwanted keys
+                keys_to_remove = ["type", "analysis_url", "duration_ms", "id", "track_href", "uri", "key", "mode", "time_signature"]
+                for key in keys_to_remove:
+                    features.pop(key, None)  # Use None as the default to avoid KeyError if the key is not present
 
+                # Add the popularity and key_mode to the features
+                features['popularity'] = track["popularity"]
+                features['key_mode'] = key_mode
 
-        # import pdb; pdb.set_trace()
-        # Construct the dictionary for this track
-        tracks.append({
-            "id": track["id"],
-            "name": track["name"],
-            "album": track["album"],
-            "release_date": track["album"]["release_date"],
-            "uri": track["uri"],
-            "features": features
-        })
+                # Construct the dictionary for this track
+                tracks.append({
+                    "id": track["id"],
+                    "name": track["name"],
+                    "album": track["album"]["name"],
+                    "release_date": track["album"]["release_date"],
+                    "uri": track["uri"],
+                    "features": features
+                })
 
     return render_template('tracks.html', tracks=tracks)
 
