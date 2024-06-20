@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <meta charset="UTF-8">
+    <title>Spotify Organizer</title>
+    <style>
+        body { text-align: center; }
+        #navbar { display: flex; justify-content: space-between; padding: 20px; }
+        #main-content { padding-top: 50px; }
+    </style>
+</head>
+<body>
+    <div id="navbar">
+        <span>Spotify Organizer</span>
+        <span>{{ 'Logged in' if logged_in else '<a href="/login"><button>Log in</button></a>'|safe }}</span>
+    </div>
+    <div id="main-content">
+        <button onclick="location.href='/playlists'">View Playlists</button>
+        <button onclick="location.href='/organizing'">Start Organizing</button>
+    </div>
+</body>
+</html>

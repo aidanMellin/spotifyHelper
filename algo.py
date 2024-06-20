@@ -1,34 +1,13 @@
 import csv
 import pprint
 from datetime import datetime
+import pdb
+from schizo import tracks
 
-date_format = "%Y‑%m‑%d"
+date_format = "%Y-%m-%d"
 
 songs = []
 genres = set()
-with open("filter.txt", "r") as file:
-    reader = csv.DictReader(file, delimiter='\t')
-    for row in reader:
-        song_dict = {
-            "sel": row['sel'],
-            "name": row['title'].strip(),  # Ensure whitespace does not affect matching
-            "artist": row['artist'],
-            "genre": row['top genre'],
-            "year": int(row['year']),
-            "added": (datetime.today() - datetime.strptime(row['added'], date_format)).days,
-            "bpm": float(row['bpm']),
-            "energy": float(row['nrgy']),
-            "danceability": float(row['dnce']),
-            "db": float(row['dB']),
-            "live": float(row['live']),
-            "valence": float(row['val']),
-            "duration": row['dur'],
-            "acousticness": float(row['acous']),
-            "speechiness": float(row['spch']),
-            "popularity": float(row['pop'])
-        }
-        songs.append(song_dict)
-        genres.add(row['top genre'])
 
 class Algorithm:
     def __init__(self) -> None:
@@ -38,36 +17,77 @@ class Algorithm:
         self.include_songs = {}
         self.exclude_songs = set()
         self.exclude_genres = set()
-        self.ISE = ''
-        self.AUTOMATIC_SONGS = False
-        self.user_weights = {}
-        self.NAMEORID = 'name'
+        self.ISE = 'i' #Include or exclude songs used to generate playlist
+        self.AUTOMATIC_SONGS = True #Are we using manual settings or the songs
+        self.consider_key_and_mode = False #Consider the Key and Mode of songs
+        self.user_weights = {} #Defined weights
+        self.NAMEORID = 'id' #Are we searching the playlist via name or id (should use ID)
         self.playlist_length = 10
         self.final_playlist = {}
 
-    def setSongs(self, songs):
+    def manuallySetSongs(self, songs): #Probably don't use
         self.songs = songs
 
-    def setConsideredSongs(self, into):
-        self.considered_songs = into
+    def setConsideredSongs(self, sent):
+        self.considered_songs = sent
 
-    def setIncludeGenres(self, into):
-        self.include_genres = into
+    def updateConsideredSongs(self, additional_songs):
+        self.considered_songs = list(set(self.considered_songs + additional_songs))
 
-    def setExcludeSongs(self, into):
-        self.exclude_songs = into
+    def setIncludeGenres(self, sent):
+        self.include_genres = sent
 
-    def setExcludeGenres(self, into):
-        self.exclude_genres = into
+    def setKeyModeConsider(self, sent):
+        self.consider_key_and_mode = sent
 
-    def setISE(self, into):
-        self.ISE = into
+    def setExcludeSongs(self, sent):
+        self.exclude_songs = sent
 
-    def setAutoSongs(self,into):
-        self.AUTOMATIC_SONGS = into
+    def setExcludeGenres(self, sent):
+        self.exclude_genres = sent
 
-    def setPlaylist_Length(self, into):
-        self.playlist_length = into
+    def setISE(self, sent):
+        self.ISE = sent
+
+    def setAutoSongs(self,sent):
+        self.AUTOMATIC_SONGS = sent
+
+    def setPlaylist_Length(self, sent):
+        self.playlist_length = sent
+
+    def processSongs(self, sent):
+        keys = [
+        "C", "C♯/D♭", "D", "D♯/E♭", "E", "F",
+        "F♯/G♭", "G", "G♯/A♭", "A", "A♯/B♭", "B"
+        ]
+
+        for row in sent:
+            release_year = None
+            try:
+                release_year = datetime.strptime(row['release_date'], date_format).year
+            except ValueError:
+                release_year = int(row["release_date"].replace("-"," ").split()[0]) #Might just be the year
+            song_dict = {
+                "name": row['name'],  # Ensure whitespace does not affect matching
+                "id": row['id'],
+                "uri": row['uri'],
+                "artists": [i["name"] for i in row["artists"]],
+                "genre": row['features']['genres'],
+                "year": release_year,
+                "bpm": float(row['features']['tempo']),
+                "energy": float(row['features']['energy']),
+                "danceability": float(row['features']['danceability']),
+                "db": float(row['features']['loudness']),
+                "live": float(row['features']['liveness']),
+                "valence": float(row['features']['valence']),
+                "acousticness": float(row['features']['acousticness']),
+                "instrumentalness": float(row['features']['instrumentalness']),
+                "speechiness": float(row['features']['speechiness']),
+                "popularity": float(row['features']['popularity']),
+                "key": keys.index(row['features']["key_mode"].split()[0]),
+                "mode": row['features']["key_mode"].split()[1]
+            }
+            self.songs.append(song_dict)
 
     def calculateUserWeights(self, user_weights=None):
         if not self.AUTOMATIC_SONGS:
@@ -84,7 +104,7 @@ class Algorithm:
         return self.determine_feature_weights_from_songs(selected_songs)
     
     def determine_feature_weights_from_songs(self, selected_songs):
-        included_features = {'year', 'added', 'bpm', 'energy', 'danceability', 'db', 'live', 'valence', 'acousticness', 'speechiness', 'popularity'}
+        included_features = {'bpm', 'energy', 'danceability', 'db', 'live', 'valence', 'acousticness', 'speechiness', 'popularity'}
         feature_sums = {}
         feature_counts = {}
         for song in selected_songs:
@@ -101,6 +121,7 @@ class Algorithm:
     
     def calculate_similarity(self, song):
         score = 0
+        # Base features calculation
         for feature, (weight, mode, target) in self.user_weights.items():
             if feature in song:
                 feature_value = song[feature]
@@ -110,7 +131,18 @@ class Algorithm:
                     score += (feature_value / 100) * weight
                 elif mode == 'lower':
                     score += ((100 - feature_value) / 100) * weight
+        
+        # Key and mode matching only if enabled
+        if self.consider_key_and_mode:
+            preferred_key = self.user_weights.get('key', (1, 'target', -1))[2]
+            preferred_mode = self.user_weights.get('mode', (1, 'target', 'Major'))[2]
+            if song['key'] == preferred_key:
+                score += 10  # Arbitrary score boost for key match
+            if song['mode'] == preferred_mode:
+                score += 10  # Arbitrary score boost for mode match
+
         return score
+
     
     def generate_playlist(self):
         self.calculateUserWeights()
@@ -119,24 +151,19 @@ class Algorithm:
         if self.ISE == 'i':
             include_songs = self.considered_songs
         elif self.ISE == 'e':
-            self.exclude_songs = self.considered_songs
+            self.exclude_songs.append(self.considered_songs)
 
         included_songs = [song for song in self.songs if song[self.NAMEORID] in include_songs]
-        song_scores = [(song, self.calculate_similarity(song)) for song in self.songs if song[self.NAMEORID] not in self.exclude_songs and song['genre'] not in self.exclude_genres and song not in included_songs]
+        song_scores = [(song, self.calculate_similarity(song)) for song in self.songs if song['id'] not in self.exclude_songs and not len(set(song['genre']).intersection(self.exclude_genres)) > 0 and song not in included_songs]
 
         sorted_songs = sorted(song_scores, key=lambda x: x[1], reverse=True)
         remaining_slots = self.playlist_length - len(included_songs)
         self.final_playlist = included_songs + [song for song, score in sorted_songs[:remaining_slots]]
-
         return self.final_playlist
 
-a = Algorithm()
-a.setSongs(songs)
-a.setConsideredSongs({'Three Month Hangover','Butterflies1', 'FYTY'})
-a.setIncludeGenres({})
-a.setExcludeGenres({})
-a.setExcludeSongs({})
-a.setISE('e')
-a.setAutoSongs(True)
-playlist = a.generate_playlist()
-pprint.pprint([f"{song['name']} by {song['artist']}" for song in playlist])
+if __name__ == '__main__':
+    algo = Algorithm()
+    algo.processSongs(tracks)
+    algo.setPlaylist_Length(4)
+    algo.setConsideredSongs(["4R4VFcQAg4fRomKHXL4zab", "3FF6vKYilv8IIJSoPKN56z"])
+    pprint.pprint(algo.generate_playlist())

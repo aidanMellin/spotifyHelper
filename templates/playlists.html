@@ -10,24 +10,11 @@
     <h1>Your Spotify Playlists</h1>
     <ul>
         {% for playlist in playlists %}
-        <li style="margin-bottom: 20px;">
-            <img src="{{ playlist['images'][0]['url'] }}" alt="{{ playlist['name'] }}" style="height: 60px; width: 60px; vertical-align: middle;">
-            <a href="javascript:void(0);" onclick="showLoadingAndNavigate('{{ playlist['id'] }}')" style="margin-left: 10px;">{{ playlist['name'] }}</a>
+        <li class="playlist-item">
+            <img src="{{ playlist['images'][0]['url'] }}" alt="{{ playlist['name'] }}" class="playlist-image">
+            <a href="/playlist/{{ playlist['id'] }}" class="playlist-name">{{ playlist['name'] }}</a>
         </li>
         {% endfor %}
     </ul>
-
-    <div id="loadingScreen">
-        <h2>Loading...</h2>
-    </div>
-
-    <script>
-        function showLoadingAndNavigate(playlistId) {
-            document.getElementById('loadingScreen').style.display = 'block';
-            setTimeout(function () {
-                window.location.href = `/playlist/${playlistId}`;
-            }, 10);  // Ensures the loading screen is rendered
-        }
-    </script>
 </body>
 </html>

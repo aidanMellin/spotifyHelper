@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Organizing</title>
+</head>
+<body>
+    <h1>Organize Your Playlist</h1>
+    <form action="/organizing" method="post">
+        <label for="playlist_id">Select a Playlist:</label>
+        <select id="playlist_id" name="playlist_id">
+            {% for playlist in playlists %}
+                <option value="{{ playlist.id }}">{{ playlist.name }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Organize</button>
+    </form>
+</body>
+</html>

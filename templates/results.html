@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Organized Playlist</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>Organized Playlist</h1>
+    <form id="excludeForm">
+        <input type="hidden" name="temp_key" value="{{ temp_key }}">
+        <ul id="playlist">
+            {% for track in playlist %}
+                <li>
+                    {{ track.name }} by {{ track.artists[0] }}
+                    <input type="checkbox" name="exclude_track_ids" value="{{ track.id }}"> Exclude
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="button" onclick="regeneratePlaylist()">Regenerate Playlist</button>
+    </form>
+    <form action="/create_playlist/{{ temp_key }}" method="post">
+        <label for="playlist_name">Playlist Name:</label>
+        <input type="text" id="playlist_name" name="playlist_name" required>
+        <button type="submit">Create Playlist on Spotify</button>
+    </form>
+    <a href="/organizing">Organize Another Playlist</a>
+
+    <script>
+        function regeneratePlaylist() {
+            $.ajax({
+                url: '/regenerate_playlist',
+                type: 'POST',
+                data: $('#excludeForm').serialize(),
+                success: function(response) {
+                    if (response.error) {
+                        alert(response.error);
+                    } else {
+                        var playlist = response.playlist;
+                        var playlistHtml = '';
+                        playlist.forEach(function(track) {
+                            playlistHtml += '<li>' + track.name + ' by ' + track.artists[0] + '<input type="checkbox" name="exclude_track_ids" value="' + track.id + '"> Exclude</li>';
+                        });
+                        $('#playlist').html(playlistHtml);
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
