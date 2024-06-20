@@ -1,4 +1,4 @@
-#SpotifyHelper
+# SpotifyHelper
 
 Welcome! This is a small project that I built to familiarize myself more with the SpotifyAPI / Spotipy library, with the added bonus of finally allowing me to separate and shrink my playlists into more manageable sizes.  
 
