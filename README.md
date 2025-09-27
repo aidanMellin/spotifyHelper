@@ -4,6 +4,8 @@ Welcome! This is a small project that I built to familiarize myself more with th
 
 As an added bonus, this allows me to use the ID of a song (or multiple ID's) to sift through my now 1800 song playlist and generate recommendations to share with friends of songs that I am intimately familiar with.
 
+*Admittedly, it needs some tweaking. A lot of the functionality is at 90%, but I need to tweak the heuristic and make it much prettier on the front end.*
+
 ## Pre-run checklist
 ### Install Dependencies
 You need pip, and all that should be necessary is
