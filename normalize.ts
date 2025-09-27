@@ -95,10 +95,17 @@ export function findMinAndMax(songs: Song[]): Features[]
  * @param max Max feature value across all songs
  * @returns the normalized value
  */
-function normalizeValue(value:number, min: number, max: number, baseSong: number): number
+function normalizeValue(value:number, min: number, max: number): number
 {
-    return Math.abs(baseSong - value)/(max-min);
+// Handle the case where min and max are the same to prevent division by zero
+    if (max === min) {
+        return 0; 
+    }
+
+    // Standard Min-Max Normalization formula: (value - min) / (max - min)
+    return (value - min) / (max - min);
 }
+
 
 /**
  * 
@@ -107,19 +114,19 @@ function normalizeValue(value:number, min: number, max: number, baseSong: number
  * @param max Max feature values across song set
  * @returns the new interface including normalized values
  */
-function normalize(value: Song, min: Features, max: Features, baseSong: Song): ModSong
+export function normalize(value: Song, min: Features, max: Features): ModSong
 {
     let normFeat: Features = {
-        acousticness: normalizeValue(value.features.acousticness, min.acousticness, max.acousticness, baseSong.features.acousticness ),
-        energy: normalizeValue(value.features.energy, min.energy, max.energy, baseSong.features.energy ),
-        danceability: normalizeValue(value.features.danceability, min.danceability, max.danceability, baseSong.features.danceability ),
-        valence: normalizeValue(value.features.valence, min.valence, max.valence, baseSong.features.valence ),
-        loudness: normalizeValue(value.features.loudness, min.loudness, max.loudness, baseSong.features.loudness ),
-        speechiness: normalizeValue(value.features.speechiness, min.speechiness, max.speechiness, baseSong.features.speechiness ),
-        instrumentalness: normalizeValue(value.features.instrumentalness, min.instrumentalness, max.instrumentalness, baseSong.features.instrumentalness ),
-        liveness: normalizeValue(value.features.liveness, min.liveness, max.liveness, baseSong.features.liveness ),
-        tempo: normalizeValue(value.features.tempo, min.tempo, max.tempo, baseSong.features.tempo ),
-        popularity: normalizeValue(value.features.popularity, min.popularity, max.popularity, baseSong.features.popularity ),
+        acousticness: normalizeValue(value.features.acousticness, min.acousticness, max.acousticness ),
+        energy: normalizeValue(value.features.energy, min.energy, max.energy ),
+        danceability: normalizeValue(value.features.danceability, min.danceability, max.danceability ),
+        valence: normalizeValue(value.features.valence, min.valence, max.valence ),
+        loudness: normalizeValue(value.features.loudness, min.loudness, max.loudness ),
+        speechiness: normalizeValue(value.features.speechiness, min.speechiness, max.speechiness ),
+        instrumentalness: normalizeValue(value.features.instrumentalness, min.instrumentalness, max.instrumentalness ),
+        liveness: normalizeValue(value.features.liveness, min.liveness, max.liveness ),
+        tempo: normalizeValue(value.features.tempo, min.tempo, max.tempo ),
+        popularity: normalizeValue(value.features.popularity, min.popularity, max.popularity ),
         key_mode: null,
         genres: null
     }
@@ -136,15 +143,15 @@ function normalize(value: Song, min: Features, max: Features, baseSong: Song): M
  * @param songs All songs to be normalized for comparison
  * @returns Array of aggregated song data
  */
-export function normalizeSongFeatures(songs: Song[], baseSong: Song): ModSong[]
+export function normalizeSongFeatures(songs: Song[], min: Features, max: Features): ModSong[]
 {
-    const [min, max]: Features[] = findMinAndMax(songs);
+    // const [min, max]: Features[] = findMinAndMax(songs);
 
     let moddedSongs: ModSong[] = [];
 
     for(const song of songs)
     {
-        moddedSongs.push(normalize(song, min, max, baseSong));
+        moddedSongs.push(normalize(song, min, max));
     }
     return moddedSongs
 }

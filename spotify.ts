@@ -1,7 +1,7 @@
 import { fetchJsonFromFile } from "./song.ts";
 import type {Features, Song} from "./song.ts"
 
-import {findMinAndMax, generateBaseCompareFeatures, getAverageFeatures, getWeights, GowersDistance, normalizeSongFeatures} from "./normalize.ts"
+import {findMinAndMax, generateBaseCompareFeatures, getAverageFeatures, getWeights, GowersDistance, normalize, normalizeSongFeatures} from "./normalize.ts"
 import type {ModSong} from "./normalize.ts"
 
 // interface Similar
@@ -10,55 +10,57 @@ import type {ModSong} from "./normalize.ts"
 //     distance: number;
 // }
 
-function main()
+const NUMBER_MATCHES = 5;
+
+function getSimilar(songs: Song[]): [string, number][]
 {
-    const songs: Song[] = fetchJsonFromFile("./smaller.json");
-    // for(const song of songs)
-    // {
-        // console.log(song.name);
-    // }
-    const normed: ModSong[] = normalizeSongFeatures(songs, songs[0]);
-    // console.log(normed)
+    //Min and Max Values within the set for normalization
+    const [min, max]: Features[] = findMinAndMax(songs);
+
+    //Normalize the feature values to between 0 and 1 given the input
+    const normed: ModSong[] = normalizeSongFeatures(songs, min, max);
+
+    //Calculate the average feature value
     const averages: Features = getAverageFeatures(normed);
+
     //Create my base compare songs. Two random ones.
     const baseSongs: ModSong[] = [normed[0], normed[1]];
-    // const baseFeat: Features = generateBaseCompareFeatures(baseSongs);
-    let distances: Map<ModSong, number> = new Map();
-    const [min, max]: Features[] = findMinAndMax(songs);
-    for(const song of normed)
+
+    //Set the distances based on comparing against each song in the base compare set
+    let distances: Map<string, number> = new Map();
+    for(const baseSong of baseSongs)
     {
-        for(const baseSong of baseSongs)
+        for(const song of normed)
         {
             const weights: Features = getWeights(normed, baseSong.normalized_features, averages)
             let tempDist: number = GowersDistance(baseSong.normalized_features, song, weights, min, max)
-            const storedDist: number = distances.get(song) ?? Number.POSITIVE_INFINITY;
-            if(tempDist < storedDist) distances.set(song, tempDist);
+            const storedDist: number = distances.get(song.id) ?? Number.POSITIVE_INFINITY;
+            if(tempDist < storedDist) distances.set(song.id, tempDist);
         }
     }
 
-    Array.from(distances.entries())
+    let counter = 0;
+    const sortedResult = Array.from(distances.entries())
             .sort(([,distanceA], [,distanceB]) => {
                 return distanceA - distanceB;
             })
-            .forEach(([song, distance]) => {
+    
+    return sortedResult;
+}
+
+function main()
+{
+    const songs: Song[] = fetchJsonFromFile("./smaller.json"); //The song list
+    const songLookup: Map<string, Song> = new Map(songs.map(song => [song.id, song]));
+
+    let measuredDistances: [string, number][] = getSimilar(songs);
+    measuredDistances.slice(0,NUMBER_MATCHES).forEach(([id, distance]) => {
+        const song = songLookup.get(id);
+            if (song) {
                 console.log(`Song: ${song.name}, Distance: ${distance}`);
-            })
-
-
-    //Get top 3 songs similar.
-    // for(const song of normed)
-    // {
-    //     distances.push(
-    //         {
-    //             song: song, distance: GowersDistance(baseFeat, song, weights, min, max)
-    //         });
-    // }
-    // distances.sort((a, b) => a.distance - b.distance)
-    // for(let i = 0; i < distances.length; i++)
-    // {
-    //     if (i < 5) console.log(distances[i].song.name);
-    //     // if(distances[i].song.name == "Lancaster Nights") console.log(distances[i]);
-    // }
+            }
+    })
+    
 }
 
 main()
