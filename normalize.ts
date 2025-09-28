@@ -18,8 +18,8 @@ const FEATURE_NAME_KEYS: Array<string> = Object.keys(FEATURE_IDX);
 
 export interface ModSong
 {
-    name: string;
-    id: string;
+    name: string; //Name + Artist of the song (Visual ID)
+    id: string; //Id of the song (unique ID)
     features: Features; //Original data
     normalized_features: Features; //Normalized between 0-1
 }
@@ -131,7 +131,7 @@ export function normalize(value: Song, min: Features, max: Features): ModSong
         genres: null
     }
     return {
-        name: value.name,
+        name: `${value.name} - ${value.artists[0]}`,
         id: value.id,
         features: value.features,
         normalized_features: normFeat,
@@ -247,35 +247,6 @@ export function getWeights(songs: ModSong[], baseSong: Features, avg: Features):
     }
 
     return weights;
-}
-
-export function generateBaseCompareFeatures(songs: ModSong[]): Features
-{
-    // Pass in a list of the base compare songs, we want to determine the general features to then compare against.
-    // Something like Gowers, but something more like
-    /**
-     * Goal: Weighted average of values in Features.
-     * 
-     * Change it to compare against the elements in the base song set, find the closest values and assign from there?
-     */
-    let compare: Features = {
-        acousticness : 0,
-        energy: 0,
-        danceability: 0,
-        valence: 0,
-        loudness: 0,
-        speechiness: 0,
-        instrumentalness: 0,
-        liveness: 0,
-        tempo: 0,
-        popularity: 0,
-        key_mode: null,
-        genres: null
-    }
-
-    let avgFeatures: Features = getAverageFeatures(songs);
-
-    return avgFeatures;
 }
 
 export function GowersDistance(base: Features, B: ModSong, weights: Features, max: Features, min: Features)
