@@ -8,4 +8,4 @@ eventlet
 flask-socketio==5.3.1
 python-socketio==5.7.2
 python-engineio==4.3.4
-eventlet==0.31.0
+eventlet==0.40.3
